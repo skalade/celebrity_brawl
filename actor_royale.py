@@ -3,22 +3,36 @@ import bs4
 import re
 import random
 
-r = requests.get('https://www.imdb.com/list/ls002984722/')
-
-soup = bs4.BeautifulSoup(r.text, 'lxml')
-
-dirty_list = soup.findAll('a', href=re.compile('ref_=nmls_hd'))
-
+page = 1
+url  = 'https://www.imdb.com/list/ls002984722/?page={:d}'
 names = []
 
-for name in dirty_list:
-    names.append(name.text[1:-1]) #remove space in beginning and \n at end
+# Do while we are still on a valid page
+while True:
+
+    # Grab and parse page
+    print ('Dealing with page {:d}...'.format(page))
+
+    r = requests.get(url.format(page))
+    soup = bs4.BeautifulSoup(r.text, 'lxml')
+    dirty_list = soup.findAll('a', href=re.compile('ref_=nmls_hd'))
+
+    # If this is no longer part of the main list, break out of loop
+    if len(dirty_list) == 0:
+        break
+
+    # Add names to full list
+    for name in dirty_list:
+        names.append(name.text[1:-1]) #remove space in beginning and \n at end
+
+    # Increment page number
+    page += 1
 
 print(names)
 
 # Select 32 random names
 
-random_samples = random.sample(range(100),32)
+random_samples = random.sample(range(len(names)),32)
 bracket_names = []
 
 for sample in random_samples:
